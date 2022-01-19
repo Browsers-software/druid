@@ -192,6 +192,8 @@ pub enum Event {
     ///
     /// [`WidgetPod`]: struct.WidgetPod.html
     Internal(InternalEvent),
+
+    WindowLostFocus,
 }
 
 /// Internal events used by druid inside [`WidgetPod`].
@@ -420,7 +422,8 @@ impl Event {
             | Event::AnimFrame(_)
             | Event::Command(_)
             | Event::Notification(_)
-            | Event::Internal(_) => true,
+            | Event::Internal(_)
+            | Event::WindowLostFocus => true,
             Event::MouseDown(_)
             | Event::MouseUp(_)
             | Event::MouseMove(_)
