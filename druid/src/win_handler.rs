@@ -537,6 +537,12 @@ impl<T: Data> InnerAppState<T> {
             win.macos_update_app_menu(&self.data, &self.env)
         }
     }
+
+    fn window_lost_focus(&mut self, window_id: WindowId) {
+        if let Some(win) = self.windows.get_mut(window_id) {
+            self.do_window_event(window_id, Event::WindowLostFocus);
+        }
+    }
 }
 
 impl<T: Data> DruidHandler<T> {
@@ -573,6 +579,10 @@ impl<T: Data> AppState<T> {
 
     fn window_got_focus(&mut self, window_id: WindowId) {
         self.inner.borrow_mut().window_got_focus(window_id)
+    }
+
+    fn window_lost_focus(&mut self, window_id: WindowId) {
+        self.inner.borrow_mut().window_lost_focus(window_id)
     }
 
     /// Send an event to the widget hierarchy.
@@ -1016,6 +1026,10 @@ impl<T: Data> WinHandler for DruidHandler<T> {
 
     fn got_focus(&mut self) {
         self.app_state.window_got_focus(self.window_id);
+    }
+
+    fn lost_focus(&mut self) {
+        self.app_state.window_lost_focus(self.window_id);
     }
 
     fn timer(&mut self, token: TimerToken) {

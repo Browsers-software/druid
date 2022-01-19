@@ -796,6 +796,7 @@ impl<T: Data, W: Widget<T>> WidgetPod<T, W> {
             Event::ImeStateChange => true, // once delivered to the focus widget, recurse to the component?
             Event::Command(_) => true,
             Event::Notification(_) => false,
+            Event::WindowLostFocus => true,
         };
 
         if recurse {
