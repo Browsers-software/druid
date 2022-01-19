@@ -199,6 +199,8 @@ pub enum Event {
     ///
     /// [`WidgetPod`]: crate::WidgetPod
     Internal(InternalEvent),
+    /// Sent when the whole window looses focus (e.g user clicks outside of the window)
+    WindowLostFocus,
 }
 
 /// Internal events used by Druid inside [`WidgetPod`].
@@ -418,7 +420,8 @@ impl Event {
             | Event::AnimFrame(_)
             | Event::Command(_)
             | Event::Notification(_)
-            | Event::Internal(_) => true,
+            | Event::Internal(_)
+            | Event::WindowLostFocus => true,
             Event::MouseDown(_)
             | Event::MouseUp(_)
             | Event::MouseMove(_)
