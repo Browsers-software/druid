@@ -301,6 +301,8 @@ impl WindowBuilder {
         }
         window.set_app_paintable(transparent);
 
+        window.set_skip_taskbar_hint(true);
+
         // Get the scale factor based on the GTK reported DPI
         let scale_factor = window.display().default_screen().resolution() / SCALE_TARGET_DPI;
         let scale = Scale::new(scale_factor, scale_factor);
