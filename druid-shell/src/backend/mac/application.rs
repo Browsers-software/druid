@@ -20,7 +20,7 @@ use std::cell::RefCell;
 use std::ffi::c_void;
 use std::rc::Rc;
 
-use cocoa::appkit::{NSApp, NSApplication, NSApplicationActivationPolicyRegular};
+use cocoa::appkit::{NSApp, NSApplication, NSApplicationActivationPolicyAccessory, NSApplicationActivationPolicyRegular};
 use cocoa::base::{id, nil, NO, YES};
 use cocoa::foundation::{NSArray, NSAutoreleasePool};
 use objc::declare::ClassDecl;
@@ -261,7 +261,7 @@ extern "C" fn application_did_finish_launching(_this: &mut Object, _: Sel, _noti
         let ns_app = NSApp();
         // We need to delay setting the activation policy and activating the app
         // until we have the main menu all set up. Otherwise the menu won't be interactable.
-        ns_app.setActivationPolicy_(NSApplicationActivationPolicyRegular);
+        ns_app.setActivationPolicy_(NSApplicationActivationPolicyAccessory);
         let () = msg_send![ns_app, activateIgnoringOtherApps: YES];
     }
 }
