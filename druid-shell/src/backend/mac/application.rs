@@ -142,9 +142,9 @@ impl DelegateState {
         }
     }
 
-    fn url_opened(&mut self, url: String) {
+    fn url_opened(&mut self, url: String, opener_bundle_id: String) {
         if let Some(inner) = self.handler.as_mut() {
-            inner.url_opened(url)
+            inner.url_opened(url, opener_bundle_id)
         }
     }
 }
@@ -187,6 +187,19 @@ static APP_DELEGATE: Lazy<AppDelegate> = Lazy::new(|| unsafe {
     AppDelegate(decl.register())
 });
 
+pub fn get_url_sender_bundle_id(event: id) -> String {
+    unsafe {
+        let subevent: id = msg_send![event, attributeDescriptorForKeyword: keySenderPIDAttr];
+        let sender_app_pid: id = msg_send![subevent, int32Value];
+        let ns_running_application = class!(NSRunningApplication);
+        let sender_app: id = msg_send![ns_running_application, runningApplicationWithProcessIdentifier:sender_app_pid];
+        let sender_app_bundle_id: id = msg_send![sender_app, bundleIdentifier];
+        //let nsstring: id = msg_send![sender_app_bundle_id, stringValue];
+        let sender_app_bundle_id_str = util::from_nsstring(sender_app_bundle_id);
+        return sender_app_bundle_id_str;
+    }
+}
+
 /// Parse an Apple URL event into a URL string
 ///
 /// Takes an NSAppleEventDescriptor from an Apple URL event, unwraps
@@ -219,7 +232,11 @@ pub const kAEGetURL: u32 = 0x4755524c;
 #[allow(non_upper_case_globals)]
 pub const keyDirectObject: u32 = 0x2d2d2d2d;
 
-pub unsafe fn NSAppleEventManager() -> id {
+/// Apple keySenderPIDAttr constant
+#[allow(non_upper_case_globals)]
+pub const keySenderPIDAttr: u32 = 0x73706964;
+
+pub unsafe fn new_ns_apple_event_manager() -> id {
     msg_send![class!(NSAppleEventManager), sharedAppleEventManager]
 }
 
@@ -240,7 +257,7 @@ impl NSAppleEventManager for id {
 extern "C" fn application_will_finish_launching(this: &mut Object, _: Sel, _notification: id) {
     unsafe {
         // register handleURLEvent:withReplyEvent: of AppDelegate class as event handler for URL events
-        let ns_apple_event_manager = NSAppleEventManager();
+        let ns_apple_event_manager = new_ns_apple_event_manager();
         ns_apple_event_manager.set_event_handler(this);
     }
 }
@@ -273,28 +290,31 @@ extern "C" fn handle_menu_item(this: &mut Object, _: Sel, item: id) {
     }
 }
 
-extern "C" fn open_file(this: &mut Object, _: Sel, application: id, file: id) -> bool {
+extern "C" fn open_file(this: &mut Object, _: Sel, _application: id, file: id) -> bool {
     let file_path = util::from_nsstring(file);
 
     unsafe {
         let inner: *mut c_void = *this.get_ivar(APP_HANDLER_IVAR);
         let inner = &mut *(inner as *mut DelegateState);
-        (*inner).url_opened(file_path.to_string());
+        (*inner).url_opened(file_path.to_string(), "".to_string());
     }
 
     return true;
 }
 
 /// This handles url events
-extern "C" fn handle_url_event(this: &mut Object, _: Sel, event: id, reply_event: id) {
+extern "C" fn handle_url_event(this: &mut Object, _: Sel, event: id, _reply_event: id) {
     println!("got answer in event handler");
     let url = parse_url_event(event);
     println!("url is {}", url);
 
+    let sender_bundle_id = get_url_sender_bundle_id(event);
+    println!("sender_bundle_id is {}", sender_bundle_id);
+
     unsafe {
         let inner: *mut c_void = *this.get_ivar(APP_HANDLER_IVAR);
         let inner = &mut *(inner as *mut DelegateState);
-        (*inner).url_opened(url.to_string());
+        (*inner).url_opened(url.to_string(), sender_bundle_id.to_string());
     }
 }
 

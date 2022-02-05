@@ -31,7 +31,7 @@ pub trait AppHandler {
     fn command(&mut self, id: u32) {}
 
     #[allow(unused_variables)]
-    fn url_opened(&mut self, url: String) {}
+    fn url_opened(&mut self, url: String, source_bundle_id: String) {}
 }
 
 /// The top level application object.
