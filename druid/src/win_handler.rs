@@ -933,14 +933,23 @@ impl<T: Data> AppState<T> {
     }
 }
 
+pub struct UrlOpenInfo {
+    pub url: String,
+    pub source_bundle_id: String,
+}
+
 impl<T: Data> crate::shell::AppHandler for AppHandler<T> {
     fn command(&mut self, id: u32) {
         self.app_state.handle_system_cmd(id, None)
     }
 
-    fn url_opened(&mut self, url: String) {
-        let url_opened: Selector<String> = Selector::new("url_opened");
-        let cmd = url_opened.with(url).to(Target::Global);
+    fn url_opened(&mut self, url: String, source_bundle_id: String) {
+        let open_info = UrlOpenInfo {
+            url: url,
+            source_bundle_id: source_bundle_id
+        };
+        let url_opened: Selector<UrlOpenInfo> = Selector::new("url_opened");
+        let cmd = url_opened.with(open_info).to(Target::Global);
         self.app_state.handle_cmd(cmd);
         self.app_state.process_commands();
         self.app_state.inner.borrow_mut().do_update();
