@@ -153,9 +153,9 @@ impl DelegateState {
         }
     }
 
-    fn url_opened(&mut self, url: String) {
+    fn url_opened(&mut self, url: String, opener_bundle_id: String) {
         if let Some(inner) = self.handler.as_mut() {
-            inner.url_opened(url)
+            inner.url_opened(url, opener_bundle_id)
         }
     }
 }
@@ -201,6 +201,19 @@ lazy_static! {
     };
 }
 
+pub fn get_url_sender_bundle_id(event: id) -> String {
+    unsafe {
+        let subevent: id = msg_send![event, attributeDescriptorForKeyword: keySenderPIDAttr];
+        let sender_app_pid: id = msg_send![subevent, int32Value];
+        let NSRunningApplication = class!(NSRunningApplication);
+        let sender_app: id = msg_send![NSRunningApplication, runningApplicationWithProcessIdentifier:sender_app_pid];
+        let sender_app_bundle_id: id = msg_send![sender_app, bundleIdentifier];
+        //let nsstring: id = msg_send![sender_app_bundle_id, stringValue];
+        let sender_app_bundle_id_str = util::from_nsstring(sender_app_bundle_id);
+        return sender_app_bundle_id_str;
+    }
+}
+
 /// Parse an Apple URL event into a URL string
 ///
 /// Takes an NSAppleEventDescriptor from an Apple URL event, unwraps
@@ -232,6 +245,10 @@ pub const kAEGetURL: u32 = 0x4755524c;
 /// Apple keyDirectObject constant
 #[allow(non_upper_case_globals)]
 pub const keyDirectObject: u32 = 0x2d2d2d2d;
+
+/// Apple keySenderPIDAttr constant
+#[allow(non_upper_case_globals)]
+pub const keySenderPIDAttr: u32 = 0x73706964;
 
 pub unsafe fn NSAppleEventManager() -> id {
     msg_send![class!(NSAppleEventManager), sharedAppleEventManager]
@@ -286,7 +303,7 @@ extern "C" fn open_file(this: &mut Object, _: Sel, application: id, file: id) ->
     unsafe {
         let inner: *mut c_void = *this.get_ivar(APP_HANDLER_IVAR);
         let inner = &mut *(inner as *mut DelegateState);
-        (*inner).url_opened(file_path.to_string());
+        (*inner).url_opened(file_path.to_string(), "".to_string());
     }
 
     return true;
@@ -298,10 +315,13 @@ extern "C" fn handle_url_event(this: &mut Object, _: Sel, event: id, reply_event
     let url = parse_url_event(event);
     println!("url is {}", url);
 
+    let sender_bundle_id = get_url_sender_bundle_id(event);
+    println!("sender_bundle_id is {}", sender_bundle_id);
+
     unsafe {
         let inner: *mut c_void = *this.get_ivar(APP_HANDLER_IVAR);
         let inner = &mut *(inner as *mut DelegateState);
-        (*inner).url_opened(url.to_string());
+        (*inner).url_opened(url.to_string(), sender_bundle_id.to_string());
     }
 }
 
