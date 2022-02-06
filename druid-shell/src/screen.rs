@@ -7,6 +7,7 @@ use crate::backend;
 use crate::kurbo::Rect;
 use std::fmt;
 use std::fmt::Display;
+use kurbo::Point;
 
 /// Monitor struct containing data about a monitor on the system
 ///
@@ -85,5 +86,10 @@ impl Screen {
             .iter()
             .map(|x| x.virtual_rect())
             .fold(Rect::ZERO, |a, b| a.union(b))
+    }
+
+    /// Returns a point for the current mouse position in screen coordinates.
+    pub fn get_mouse_position() -> Point {
+        backend::screen::get_mouse_position()
     }
 }

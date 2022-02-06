@@ -7,7 +7,8 @@ use crate::kurbo::Rect;
 use crate::screen::Monitor;
 use cocoa::appkit::NSScreen;
 use cocoa::base::id;
-use cocoa::foundation::NSArray;
+use cocoa::foundation::{NSArray, NSPoint};
+use kurbo::Point;
 use objc::{class, msg_send, sel, sel_impl};
 
 pub(crate) fn get_monitors() -> Vec<Monitor> {
@@ -117,4 +118,36 @@ mod test {
             mons
         )
     }
+}
+
+/// The current mouse location in screen coordinates.
+pub(crate) fn get_mouse_position() -> Point {
+    let mut x: f64 = 0.0;
+    let mut y: f64 = 0.0;
+
+    unsafe {
+        let location: NSPoint = msg_send![class!(NSEvent), mouseLocation];
+        x = location.x;
+        y = location.y;
+    }
+
+    // on macOS origin is bottom left
+    // (see https://developer.apple.com/library/archive/documentation/General/Conceptual/Devpedia-CocoaApp/CoordinateSystem.html)
+
+    // find correct monitor based on x and y
+    for monitor in get_monitors() {
+        let rect = monitor.virtual_rect();
+        //rect.y0
+
+        // FYI: rect.y0, rect.y1 are already "normalized" to top-left instead of bottom-left
+        if rect.x0 <= x && x <= rect.x1 &&
+            rect.y0 <= y && y <= rect.y1 {
+            // this is the monitor the cursor is in, now we can calculate normalized y
+            // TODO: actually test this with multi-monitor setup (incl vertically stacked)
+            y = rect.y1 - y;
+            break;
+        }
+    }
+
+    return Point::new(x, y);
 }
