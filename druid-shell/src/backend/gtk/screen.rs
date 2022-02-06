@@ -22,18 +22,28 @@ fn translate_gdk_monitor(mon: gtk::gdk::Monitor) -> Monitor {
         translate_gdk_rectangle(mon.workarea()),
     )
 }
-pub(crate) fn get_mouse_position() -> Point {
+pub(crate) fn get_mouse_position() -> (Point, Rect) {
     if !gtk::is_initialized() {
         if let Err(err) = gtk::init() {
             tracing::error!("{}", err.message);
-            return Point::ORIGIN;
+            return (Point::ZERO, Rect::ZERO);
         }
     }
-    let default_display_maybe = DisplayManager::get().default_display().map(|d| d.default_group());
-    let default_display = default_display_maybe.unwrap();
-    let (_, x, y, mask) = default_display.device_position();
 
-    return Point::new(x, y);
+    let default_display_maybe = DisplayManager::get().default_display();
+    let default_display = default_display_maybe.unwrap();
+    let default_seat_maybe = default_display.default_seat();
+    let default_seat = default_seat_maybe.unwrap();
+    let pointer_maybe = default_seat.pointer();
+    let pointer = pointer_maybe.unwrap();
+    let (_, x, y) = pointer.position();
+
+    let display = pointer.display();
+    let monitor_maybe = display.monitor_at_point(x, y);
+    let pointer_monitor = monitor_maybe.unwrap();
+    let rect = translate_gdk_rectangle(pointer_monitor.geometry());
+
+    return (Point::new(x.into(), y.into()), rect);
 }
 
 pub(crate) fn get_monitors() -> Vec<Monitor> {

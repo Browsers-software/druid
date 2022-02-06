@@ -121,15 +121,12 @@ mod test {
 }
 
 /// The current mouse location in screen coordinates.
-pub(crate) fn get_mouse_position() -> Point {
-    let mut x: f64 = 0.0;
-    let mut y: f64 = 0.0;
-
-    unsafe {
+/// Also returns bounding rectangle of the screen the cursor is in.
+pub(crate) fn get_mouse_position() -> (Point, Rect) {
+    let point = unsafe {
         let location: NSPoint = msg_send![class!(NSEvent), mouseLocation];
-        x = location.x;
-        y = location.y;
-    }
+        Point::new(location.x, location.y)
+    };
 
     // on macOS origin is bottom left
     // (see https://developer.apple.com/library/archive/documentation/General/Conceptual/Devpedia-CocoaApp/CoordinateSystem.html)
@@ -137,17 +134,18 @@ pub(crate) fn get_mouse_position() -> Point {
     // find correct monitor based on x and y
     for monitor in get_monitors() {
         let rect = monitor.virtual_rect();
-        //rect.y0
+        let x = point.x;
+        let y = point.y;
 
         // FYI: rect.y0, rect.y1 are already "normalized" to top-left instead of bottom-left
         if rect.x0 <= x && x <= rect.x1 &&
             rect.y0 <= y && y <= rect.y1 {
             // this is the monitor the cursor is in, now we can calculate normalized y
             // TODO: actually test this with multi-monitor setup (incl vertically stacked)
-            y = rect.y1 - y;
-            break;
+            return (Point::new(x, rect.y1 - y), rect);
         }
     }
 
-    return Point::new(x, y);
+    println!("macos:get_mouse_position should not get here, unless there is no mouse");
+    return (Point::ZERO, Rect::ZERO);
 }

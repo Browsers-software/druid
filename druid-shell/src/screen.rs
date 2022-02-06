@@ -89,7 +89,7 @@ impl Screen {
     }
 
     /// Returns a point for the current mouse position in screen coordinates.
-    pub fn get_mouse_position() -> Point {
+    pub fn get_mouse_position() -> (Point, Rect){
         backend::screen::get_mouse_position()
     }
 }
