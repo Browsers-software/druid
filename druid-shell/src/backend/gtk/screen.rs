@@ -14,9 +14,10 @@
 
 //! GTK Monitors and Screen information.
 
-use crate::screen::Monitor;
 use gtk::gdk::{Display, DisplayManager, Rectangle};
 use kurbo::{Point, Rect, Size};
+
+use crate::screen::Monitor;
 
 fn translate_gdk_rectangle(r: Rectangle) -> Rect {
     Rect::from_origin_size(
@@ -49,14 +50,14 @@ pub(crate) fn get_mouse_position() -> (Point, Rect) {
     let default_seat = default_seat_maybe.unwrap();
     let pointer_maybe = default_seat.pointer();
     let pointer = pointer_maybe.unwrap();
-    let (screen, x, y, mask) = pointer.position();
+    let (_, x, y) = pointer.position();
 
     let display = pointer.display();
     let monitor_maybe = display.monitor_at_point(x, y);
     let pointer_monitor = monitor_maybe.unwrap();
     let rect = translate_gdk_rectangle(pointer_monitor.geometry());
 
-    return (Point::new(x, y), rect);
+    return (Point::new(x.into(), y.into()), rect);
 }
 
 pub(crate) fn get_monitors() -> Vec<Monitor> {
