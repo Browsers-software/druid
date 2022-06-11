@@ -7,7 +7,7 @@ use crate::backend;
 use crate::kurbo::Rect;
 use std::fmt;
 use std::fmt::Display;
-use kurbo::Point;
+use piet_common::kurbo::Point;
 
 /// Monitor struct containing data about a monitor on the system
 ///
@@ -89,7 +89,7 @@ impl Screen {
     }
 
     /// Returns a point for the current mouse position in screen coordinates.
-    pub fn get_mouse_position() -> (Point, Rect){
+    pub fn get_mouse_position() -> (Point, Monitor){
         backend::screen::get_mouse_position()
     }
 }

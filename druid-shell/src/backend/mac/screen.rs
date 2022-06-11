@@ -121,8 +121,8 @@ mod test {
 }
 
 /// The current mouse location in screen coordinates.
-/// Also returns bounding rectangle of the screen the cursor is in.
-pub(crate) fn get_mouse_position() -> (Point, Rect) {
+/// Also returns monitor of the screen the cursor is in.
+pub(crate) fn get_mouse_position() -> (Point, Monitor) {
     let point = unsafe {
         let location: NSPoint = msg_send![class!(NSEvent), mouseLocation];
         Point::new(location.x, location.y)
@@ -142,10 +142,10 @@ pub(crate) fn get_mouse_position() -> (Point, Rect) {
             rect.y0 <= y && y <= rect.y1 {
             // this is the monitor the cursor is in, now we can calculate normalized y
             // TODO: actually test this with multi-monitor setup (incl vertically stacked)
-            return (Point::new(x, rect.y1 - y), rect);
+            return (Point::new(x, rect.y1 - y), monitor);
         }
     }
 
     println!("macos:get_mouse_position should not get here, unless there is no mouse");
-    return (Point::ZERO, Rect::ZERO);
+    return (Point::ZERO, Monitor::new(false, Rect::ZERO, Rect::ZERO));
 }
