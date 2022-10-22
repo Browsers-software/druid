@@ -1132,7 +1132,9 @@ impl<T: Data, W: Widget<T>> WidgetPod<T, W> {
                 // (Lifecycle::BuildFocusChain.should_propagate_to_hidden() is false!) and should
                 // resign the focus.
                 if had_focus && !self.state.has_focus {
-                    self.state.request_focus = Some(FocusChange::Resign);
+                    // TODO: disable this as a workaround for a bug,
+                    //       something changes had_focus/state.has_focus incorrectly
+                    //self.state.request_focus = Some(FocusChange::Resign);
                 }
                 self.state.has_focus = had_focus;
 
