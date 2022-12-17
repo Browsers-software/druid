@@ -22,6 +22,35 @@ use cocoa::foundation::{NSArray, NSPoint};
 use kurbo::Point;
 use objc::{class, msg_send, sel, sel_impl};
 
+
+fn get_monitors_internal() -> (Vec<Monitor>,  f64) {
+    unsafe {
+        let screens: id = msg_send![class![NSScreen], screens];
+        let mut monitors = Vec::<(Rect, Rect)>::new();
+        let mut total_rect = Rect::ZERO;
+
+        for idx in 0..screens.count() {
+            let screen = screens.objectAtIndex(idx);
+            let frame = NSScreen::frame(screen);
+
+            let frame_r = Rect::from_origin_size(
+                    (frame.origin.x, frame.origin.y),
+                (frame.size.width, frame.size.height),
+            );
+            let vis_frame = NSScreen::visibleFrame(screen);
+            let vis_frame_r = Rect::from_origin_size(
+                    (vis_frame.origin.x, vis_frame.origin.y),
+                (vis_frame.size.width, vis_frame.size.height),
+            );
+            monitors.push((frame_r, vis_frame_r));
+            total_rect = total_rect.union(frame_r)
+        }
+        // TODO save this total_rect.y1 for screen coord transformations in get_position/set_position
+        // and invalidate on monitor changes
+        (transform_coords(monitors, total_rect.y1), total_rect.y1)
+    }
+}
+
 pub(crate) fn get_monitors() -> Vec<Monitor> {
     unsafe {
         let screens: id = msg_send![class![NSScreen], screens];
@@ -142,21 +171,24 @@ pub(crate) fn get_mouse_position() -> (Point, Monitor) {
     // on macOS origin is bottom left
     // (see https://developer.apple.com/library/archive/documentation/General/Conceptual/Devpedia-CocoaApp/CoordinateSystem.html)
 
+    let (monitors, total_rect_y1) = get_monitors_internal();
+    // transforms y based on total_rect.y1 in get_monitors, so origin is top left
+    let mouse_position = Point::new(point.x, total_rect_y1 - point.y);
+
     // find correct monitor based on x and y
-    for monitor in get_monitors() {
+    for monitor in monitors {
         let rect = monitor.virtual_rect();
-        let x = point.x;
-        let y = point.y;
+        let x = mouse_position.x;
+        let y = mouse_position.y;
 
         // FYI: rect.y0, rect.y1 are already "normalized" to top-left instead of bottom-left
         if rect.x0 <= x && x <= rect.x1 &&
             rect.y0 <= y && y <= rect.y1 {
-            // this is the monitor the cursor is in, now we can calculate normalized y
-            // TODO: actually test this with multi-monitor setup (incl vertically stacked)
-            return (Point::new(x, rect.y1 - y), monitor);
+            // this is the monitor the cursor is in
+            return (mouse_position, monitor);
         }
     }
 
     println!("macos:get_mouse_position should not get here, unless there is no mouse");
-    return (Point::ZERO, Monitor::new(false, Rect::ZERO, Rect::ZERO));
+    return (mouse_position, Monitor::new(false, Rect::ZERO, Rect::ZERO));
 }
