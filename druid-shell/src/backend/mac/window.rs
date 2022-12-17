@@ -176,6 +176,11 @@ struct ViewState {
 // TODO: support custom cursors
 pub struct CustomCursor;
 
+fn get_max_y() -> f64 {
+    let (_monitors, max_y) = crate::backend::screen::get_monitors_internal();
+    return max_y
+}
+
 impl WindowBuilder {
     pub fn new(_app: Application) -> WindowBuilder {
         WindowBuilder {
@@ -256,7 +261,7 @@ impl WindowBuilder {
                 style_mask |= NSWindowStyleMask::NSResizableWindowMask;
             }
 
-            let screen_height = crate::Screen::get_display_rect().height();
+            let screen_height = get_max_y();
             let position = self.position.unwrap_or_else(|| Point::new(20., 20.));
             let origin = NSPoint::new(position.x, screen_height - position.y - self.size.height); // Flip back
 
@@ -921,7 +926,7 @@ fn set_position_deferred(this: &mut Object, _view_state: &mut ViewState, positio
         // 1
         // 2
 
-        let screen_height = crate::Screen::get_display_rect().height();
+        let screen_height = get_max_y();
         new_frame.origin.y = screen_height - position.y - frame.size.height; // Flip back
         let () = msg_send![window, setFrame: new_frame display: YES];
         debug!("set_position_deferred {:?}", position);
@@ -1262,8 +1267,7 @@ impl WindowHandle {
 
     pub fn get_position(&self) -> Point {
         unsafe {
-            // TODO this should be the max y in orig mac coords
-            let screen_height = crate::Screen::get_display_rect().height();
+            let screen_height = get_max_y();
 
             let window: id = msg_send![*self.nsview.load(), window];
             let current_frame: NSRect = msg_send![window, frame];
@@ -1286,7 +1290,7 @@ impl WindowHandle {
 
     pub fn content_insets(&self) -> Insets {
         unsafe {
-            let screen_height = crate::Screen::get_display_rect().height();
+            let screen_height = get_max_y();
 
             let window: id = msg_send![*self.nsview.load(), window];
             let clr: NSRect = msg_send![window, contentLayoutRect];
