@@ -23,7 +23,7 @@ use kurbo::Point;
 use objc::{class, msg_send, sel, sel_impl};
 
 
-fn get_monitors_internal() -> (Vec<Monitor>,  f64) {
+pub(crate) fn get_monitors_internal() -> (Vec<Monitor>,  f64) {
     unsafe {
         let screens: id = msg_send![class![NSScreen], screens];
         let mut monitors = Vec::<(Rect, Rect)>::new();
