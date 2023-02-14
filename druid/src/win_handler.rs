@@ -8,26 +8,22 @@ use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
 
-use crate::kurbo::Size;
-use crate::piet::Piet;
-use crate::shell::{
-    text::InputHandler, Application, FileDialogToken, FileInfo, IdleToken, MouseEvent, Region,
-    Scale, TextFieldToken, WinHandler, WindowHandle,
-};
+use druid_shell::WindowBuilder;
 
+use crate::{Command, Data, Env, Event, Handled, InternalEvent, KeyEvent, PlatformError, Point, Selector, Target, TimerToken, WidgetId, WindowDesc, WindowId};
+use crate::app::{PendingWindow, WindowConfig};
 use crate::app_delegate::{AppDelegate, DelegateCtx};
+use crate::command::sys as sys_cmd;
 use crate::core::CommandQueue;
 use crate::ext_event::{ExtEventHost, ExtEventSink};
+use crate::kurbo::Size;
 use crate::menu::{ContextMenu, MenuItemId, MenuManager};
-use crate::window::{ImeUpdateFn, Window};
-use crate::{
-    Command, Data, Env, Event, Handled, InternalEvent, KeyEvent, PlatformError, Selector, Target,
-    TimerToken, WidgetId, WindowDesc, WindowId,
+use crate::piet::Piet;
+use crate::shell::{
+    Application, FileDialogToken, FileInfo, IdleToken, MouseEvent, Region, Scale,
+    text::InputHandler, TextFieldToken, WindowHandle, WinHandler,
 };
-
-use crate::app::{PendingWindow, WindowConfig};
-use crate::command::sys as sys_cmd;
-use druid_shell::WindowBuilder;
+use crate::window::{ImeUpdateFn, Window};
 
 pub(crate) const RUN_COMMANDS_TOKEN: IdleToken = IdleToken::new(1);
 
@@ -322,6 +318,12 @@ impl<T: Data> InnerAppState<T> {
     fn configure_window(&mut self, config: &WindowConfig, id: WindowId) {
         if let Some(win) = self.windows.get_mut(id) {
             config.apply_to_handle(&mut win.handle);
+        }
+    }
+
+    fn configure_window_position(&mut self, pos: &Point, id: WindowId) {
+        if let Some(win) = self.windows.get_mut(id) {
+            win.handle.set_position(*pos)
         }
     }
 
@@ -688,6 +690,7 @@ impl<T: Data> AppState<T> {
             T::Window(id) if cmd.is(sys_cmd::SHOW_OPEN_PANEL) => self.show_open_panel(cmd, id),
             T::Window(id) if cmd.is(sys_cmd::SHOW_SAVE_PANEL) => self.show_save_panel(cmd, id),
             T::Window(id) if cmd.is(sys_cmd::CONFIGURE_WINDOW) => self.configure_window(cmd, id),
+            T::Window(id) if cmd.is(sys_cmd::CONFIGURE_WINDOW_POSITION) => self.configure_window_position(cmd, id),
             T::Window(id) if cmd.is(sys_cmd::CLOSE_WINDOW) => {
                 if !self.inner.borrow_mut().dispatch_cmd(cmd).is_handled() {
                     self.request_close_window(id);
@@ -867,6 +870,12 @@ impl<T: Data> AppState<T> {
         }
     }
 
+    fn configure_window_position(&mut self, cmd: Command, id: WindowId) {
+        if let Some(window_position) = cmd.get(sys_cmd::CONFIGURE_WINDOW_POSITION) {
+            self.inner.borrow_mut().configure_window_position(window_position, id);
+        }
+    }
+
     fn do_paste(&mut self, window_id: WindowId) {
         let event = Event::Paste(self.inner.borrow().app.clipboard());
         self.inner.borrow_mut().do_window_event(window_id, event);
@@ -952,7 +961,7 @@ impl<T: Data> crate::shell::AppHandler for AppHandler<T> {
     fn url_opened(&mut self, url: String, source_bundle_id: String) {
         let open_info = UrlOpenInfo {
             url: url,
-            source_bundle_id: source_bundle_id
+            source_bundle_id: source_bundle_id,
         };
         let url_opened: Selector<UrlOpenInfo> = Selector::new("url_opened");
         let cmd = url_opened.with(open_info).to(Target::Global);

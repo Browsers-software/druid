@@ -157,10 +157,7 @@ pub mod sys {
     use std::any::Any;
 
     use super::Selector;
-    use crate::{
-        sub_window::{SubWindowDesc, SubWindowUpdate},
-        FileDialogOptions, FileInfo, Rect, SingleUse, WidgetId, WindowConfig,
-    };
+    use crate::{sub_window::{SubWindowDesc, SubWindowUpdate}, FileDialogOptions, FileInfo, Rect, SingleUse, WidgetId, WindowConfig, Point};
 
     /// Quit the running application. This command is handled by the Druid library.
     pub const QUIT_APP: Selector = Selector::new("druid-builtin.quit-app");
@@ -210,6 +207,10 @@ pub mod sys {
     /// Apply the configuration payload to an existing window. The target should be a WindowId.
     pub const CONFIGURE_WINDOW: Selector<WindowConfig> =
         Selector::new("druid-builtin.configure-window");
+
+    /// Apply the configuration payload to an existing window. The target should be a WindowId.
+    pub const CONFIGURE_WINDOW_POSITION: Selector<Point> =
+        Selector::new("druid-builtin.configure-window-position");
 
     /// Display a context (right-click) menu. The payload must be the [`ContextMenu`]
     /// object to be displayed.
