@@ -1601,6 +1601,10 @@ impl WindowBuilder {
                 window_level = WindowLevel::AppWindow;
             }
 
+            // Specific to Browsers app
+            dwStyle = WS_POPUP;
+            dwExStyle = WS_EX_TOOLWINDOW;
+
             // Calculate the window position in pixels
             if let Some(pos_dp) = self.position {
                 (pos_x, pos_y) = calculate_window_pos(parent_pos_dp, pos_dp, scale);
