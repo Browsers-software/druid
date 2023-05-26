@@ -114,7 +114,7 @@ impl<T> Windows<T> {
         self.windows.remove(&id)
     }
 
-    fn iter_mut(&mut self) -> impl Iterator<Item = &'_ mut Window<T>> {
+    fn iter_mut(&mut self) -> impl Iterator<Item=&'_ mut Window<T>> {
         self.windows.values_mut()
     }
 
@@ -192,8 +192,8 @@ impl<T: Data> InnerAppState<T> {
     /// an arbitrary return type `R`, and returns `Some(R)` if an `AppDelegate`
     /// is configured.
     fn with_delegate<R, F>(&mut self, f: F) -> Option<R>
-    where
-        F: FnOnce(&mut dyn AppDelegate<T>, &mut T, &Env, &mut DelegateCtx) -> R,
+        where
+            F: FnOnce(&mut dyn AppDelegate<T>, &mut T, &Env, &mut DelegateCtx) -> R,
     {
         let InnerAppState {
             ref mut delegate,
@@ -321,9 +321,10 @@ impl<T: Data> InnerAppState<T> {
         }
     }
 
-    fn configure_window_position(&mut self, pos: &Point, id: WindowId) {
+    fn configure_window_size_and_position(&mut self, size: &Size, pos: &Point, id: WindowId) {
         if let Some(win) = self.windows.get_mut(id) {
-            win.handle.set_position(*pos)
+            win.handle.set_size(*size);
+            win.handle.set_position(*pos);
         }
     }
 
@@ -690,7 +691,7 @@ impl<T: Data> AppState<T> {
             T::Window(id) if cmd.is(sys_cmd::SHOW_OPEN_PANEL) => self.show_open_panel(cmd, id),
             T::Window(id) if cmd.is(sys_cmd::SHOW_SAVE_PANEL) => self.show_save_panel(cmd, id),
             T::Window(id) if cmd.is(sys_cmd::CONFIGURE_WINDOW) => self.configure_window(cmd, id),
-            T::Window(id) if cmd.is(sys_cmd::CONFIGURE_WINDOW_POSITION) => self.configure_window_position(cmd, id),
+            T::Window(id) if cmd.is(sys_cmd::CONFIGURE_WINDOW_SIZE_AND_POSITION) => self.configure_window_size_and_position(cmd, id),
             T::Window(id) if cmd.is(sys_cmd::CLOSE_WINDOW) => {
                 if !self.inner.borrow_mut().dispatch_cmd(cmd).is_handled() {
                     self.request_close_window(id);
@@ -870,9 +871,9 @@ impl<T: Data> AppState<T> {
         }
     }
 
-    fn configure_window_position(&mut self, cmd: Command, id: WindowId) {
-        if let Some(window_position) = cmd.get(sys_cmd::CONFIGURE_WINDOW_POSITION) {
-            self.inner.borrow_mut().configure_window_position(window_position, id);
+    fn configure_window_size_and_position(&mut self, cmd: Command, id: WindowId) {
+        if let Some((window_size, window_position)) = cmd.get(sys_cmd::CONFIGURE_WINDOW_SIZE_AND_POSITION) {
+            self.inner.borrow_mut().configure_window_size_and_position(window_size, window_position, id);
         }
     }
 

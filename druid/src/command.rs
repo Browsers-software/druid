@@ -155,6 +155,7 @@ pub enum Target {
 /// See [`Command`] for more info.
 pub mod sys {
     use std::any::Any;
+    use druid::Size;
 
     use super::Selector;
     use crate::{sub_window::{SubWindowDesc, SubWindowUpdate}, FileDialogOptions, FileInfo, Rect, SingleUse, WidgetId, WindowConfig, Point};
@@ -209,8 +210,8 @@ pub mod sys {
         Selector::new("druid-builtin.configure-window");
 
     /// Apply the configuration payload to an existing window. The target should be a WindowId.
-    pub const CONFIGURE_WINDOW_POSITION: Selector<Point> =
-        Selector::new("druid-builtin.configure-window-position");
+    pub const CONFIGURE_WINDOW_SIZE_AND_POSITION: Selector<(Size, Point)> =
+        Selector::new("druid-builtin.configure-window-size-and-position");
 
     /// Display a context (right-click) menu. The payload must be the [`ContextMenu`]
     /// object to be displayed.
