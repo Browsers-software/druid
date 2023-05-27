@@ -340,7 +340,7 @@ impl WindowBuilder {
                 },
                 WindowLevel::Utility => {
                     window.set_urgency_hint(true);
-                    window.set_modal(true);
+                    //window.set_modal(true);
                 }
                 _ => (),
             };
