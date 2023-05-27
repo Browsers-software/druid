@@ -147,6 +147,9 @@ pub enum WindowLevel {
     DropDown(WindowHandle),
     /// A modal dialog
     Modal(WindowHandle),
+
+    /// A top level app window, without window decorators and on top of other windows
+    Utility
 }
 
 /// Contains the different states a Window can be in.

@@ -294,6 +294,9 @@ impl WindowBuilder {
                     .to_vec2();
                 (handle, origin)
             }
+            WindowLevel::Utility => {
+                (Weak::new(), Vec2::ZERO)
+            }
         };
         let pos = (self.position.unwrap_or_default() + parent_origin).to_px(scale);
 
@@ -443,6 +446,7 @@ impl WindowBuilder {
                 WindowLevel::Tooltip(_) => atoms._NET_WM_WINDOW_TYPE_TOOLTIP,
                 WindowLevel::Modal(_) => atoms._NET_WM_WINDOW_TYPE_DIALOG,
                 WindowLevel::DropDown(_) => atoms._NET_WM_WINDOW_TYPE_DROPDOWN_MENU,
+                WindowLevel::Utility => atoms._NET_WM_WINDOW_TYPE_UTILITY,
             };
 
             let conn = self.app.connection();

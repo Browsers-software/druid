@@ -83,6 +83,7 @@ mod levels {
             Tooltip(_) => NSFloatingWindowLevel,
             DropDown(_) => NSFloatingWindowLevel,
             Modal(_) => NSModalPanelWindowLevel,
+            Utility => NSFloatingWindowLevel,
         }
     }
 }

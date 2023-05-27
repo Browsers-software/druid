@@ -321,6 +321,7 @@ impl WindowBuilder {
                 WindowLevel::Tooltip(_) => WindowTypeHint::Tooltip,
                 WindowLevel::DropDown(_) => WindowTypeHint::DropdownMenu,
                 WindowLevel::Modal(_) => WindowTypeHint::Dialog,
+                WindowLevel::Utility => WindowTypeHint::Utility,
             };
 
             window.set_type_hint(hint);
@@ -334,6 +335,10 @@ impl WindowBuilder {
                 }
                 WindowLevel::Modal(p) => {
                     parent = Some(p.clone());
+                    window.set_urgency_hint(true);
+                    window.set_modal(true);
+                },
+                WindowLevel::Utility => {
                     window.set_urgency_hint(true);
                     window.set_modal(true);
                 }
@@ -787,7 +792,7 @@ impl WindowBuilder {
         if let Some(level) = self.level {
             let override_redirect = match level {
                 WindowLevel::AppWindow => false,
-                WindowLevel::Tooltip(_) | WindowLevel::DropDown(_) | WindowLevel::Modal(_) => true,
+                WindowLevel::Tooltip(_) | WindowLevel::DropDown(_) | WindowLevel::Modal(_) | WindowLevel::Utility => true,
             };
             if let Some(window) = win_state.window.window() {
                 window.set_override_redirect(override_redirect);

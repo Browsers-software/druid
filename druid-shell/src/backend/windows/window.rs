@@ -1594,16 +1594,16 @@ impl WindowBuilder {
                         dwStyle = WS_POPUP;
                         dwExStyle = WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW;
                         focusable = false;
+                    },
+                    WindowLevel::Utility => {
+                        dwStyle = WS_POPUP;
+                        dwExStyle = WS_EX_TOOLWINDOW;
                     }
                 }
             } else {
                 // Default window level
                 window_level = WindowLevel::AppWindow;
             }
-
-            // Specific to Browsers app
-            dwStyle = WS_POPUP;
-            dwExStyle = WS_EX_TOOLWINDOW;
 
             // Calculate the window position in pixels
             if let Some(pos_dp) = self.position {
@@ -2158,6 +2158,9 @@ impl WindowHandle {
                     self.defer(DeferredOp::SetPosition(screen_position));
                 }
                 WindowLevel::AppWindow => {
+                    self.defer(DeferredOp::SetPosition(position));
+                }
+                WindowLevel::Utility => {
                     self.defer(DeferredOp::SetPosition(position));
                 }
             }
