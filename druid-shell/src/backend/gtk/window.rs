@@ -792,7 +792,9 @@ impl WindowBuilder {
         if let Some(level) = self.level {
             let override_redirect = match level {
                 WindowLevel::AppWindow => false,
-                WindowLevel::Tooltip(_) | WindowLevel::DropDown(_) | WindowLevel::Modal(_) | WindowLevel::Utility => true,
+                // allow configuring titlebar even for utility window
+                WindowLevel::Utility => false,
+                WindowLevel::Tooltip(_) | WindowLevel::DropDown(_) | WindowLevel::Modal(_) => true,
             };
             if let Some(window) = win_state.window.window() {
                 window.set_override_redirect(override_redirect);
