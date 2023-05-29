@@ -1596,7 +1596,7 @@ impl WindowBuilder {
                         focusable = false;
                     },
                     WindowLevel::Utility => {
-                        dwStyle = WS_POPUP;
+                        dwStyle = WS_POPUPWINDOW | WS_CAPTION;
                         dwExStyle = WS_EX_TOOLWINDOW;
                     }
                 }
