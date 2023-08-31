@@ -160,6 +160,20 @@ pub enum WindowState {
     Restored,
 }
 
+/// If backend supports it (currently only gtk)
+/// ask to open window in generic position instead of having to pass in coordinates
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WindowInitialPosition {
+    /// Default position. No influence is made on placement.
+    None,
+    /// Windows should be placed in the center of the screen.
+    Center,
+    /// Center the window on its parent window
+    CenterOnParent,
+    /// Windows should be placed at the current mouse position.
+    Mouse,
+}
+
 /// A handle to a platform window object.
 #[derive(Clone, Default, PartialEq, Eq)]
 pub struct WindowHandle(pub(crate) backend::WindowHandle);

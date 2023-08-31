@@ -40,6 +40,20 @@ pub enum WindowSizePolicy {
     User,
 }
 
+/// If backend supports it (currently only gtk)
+/// ask to open window in generic position instead of having to pass in coordinates
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WindowInitialPosition {
+    /// Default position. No influence is made on placement.
+    None,
+    /// Windows should be placed in the center of the screen.
+    Center,
+    /// Center the window on its parent window
+    CenterOnParent,
+    /// Windows should be placed at the current mouse position.
+    Mouse,
+}
+
 /// Window configuration that can be applied to a WindowBuilder, or to an existing WindowHandle.
 /// It does not include anything related to app data.
 #[derive(PartialEq)]
@@ -47,6 +61,7 @@ pub struct WindowConfig {
     pub(crate) size_policy: WindowSizePolicy,
     pub(crate) size: Option<Size>,
     pub(crate) min_size: Option<Size>,
+    pub(crate) initial_position: WindowInitialPosition,
     pub(crate) position: Option<Point>,
     pub(crate) resizable: Option<bool>,
     pub(crate) transparent: Option<bool>,
@@ -277,6 +292,7 @@ impl Default for WindowConfig {
             size_policy: WindowSizePolicy::User,
             size: None,
             min_size: None,
+            initial_position: WindowInitialPosition::None,
             position: None,
             resizable: None,
             show_titlebar: None,
@@ -379,6 +395,11 @@ impl WindowConfig {
     /// Sets the [`WindowState`] of the window.
     pub fn set_window_state(mut self, state: WindowState) -> Self {
         self.state = Some(state);
+        self
+    }
+
+    pub fn set_initial_position(mut self, initial_position: WindowInitialPosition) -> Self {
+        self.initial_position = initial_position;
         self
     }
 
@@ -564,6 +585,12 @@ impl<T: Data> WindowDesc<T> {
     pub fn transparent(mut self, transparent: bool) -> Self {
         self.config = self.config.transparent(transparent);
         self.pending = self.pending.transparent(transparent);
+        self
+    }
+
+    /// Sets the initial window position, handled by backend
+    pub fn set_initial_position(mut self, initial_position: WindowInitialPosition) -> Self {
+        self.config = self.config.set_initial_position(initial_position);
         self
     }
 

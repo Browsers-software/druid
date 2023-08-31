@@ -28,6 +28,7 @@ use cairo::Surface;
 use gtk::gdk::{
     EventKey, EventMask, EventType, ModifierType, ScrollDirection, Window, WindowTypeHint,
 };
+use gtk_rs::WindowPosition;
 
 use instant::Duration;
 use tracing::{error, warn};
@@ -47,9 +48,7 @@ use crate::piet::ImageFormat;
 use crate::region::Region;
 use crate::scale::{Scalable, Scale, ScaledArea};
 use crate::text::{simulate_input, Event};
-use crate::window::{
-    self, FileDialogToken, IdleToken, TextFieldToken, TimerToken, WinHandler, WindowLevel,
-};
+use crate::window::{self, FileDialogToken, IdleToken, TextFieldToken, TimerToken, WinHandler, WindowInitialPosition,  WindowLevel};
 
 use super::application::Application;
 use super::dialog;
@@ -136,6 +135,7 @@ pub(crate) struct WindowBuilder {
     position: Option<Point>,
     level: Option<WindowLevel>,
     state: Option<window::WindowState>,
+    initial_position: WindowInitialPosition,
     size: Size,
     min_size: Option<Size>,
     resizable: bool,
@@ -220,6 +220,7 @@ impl WindowBuilder {
             position: None,
             level: None,
             state: None,
+            initial_position: WindowInitialPosition::None,
             min_size: None,
             resizable: true,
             show_titlebar: true,
@@ -266,6 +267,10 @@ impl WindowBuilder {
 
     pub fn set_window_state(&mut self, state: window::WindowState) {
         self.state = Some(state);
+    }
+
+    pub fn set_initial_position(&mut self, initial_position: window::WindowInitialPosition) {
+        self.initial_position = initial_position;
     }
 
     pub fn set_title(&mut self, title: impl Into<String>) {
@@ -340,7 +345,6 @@ impl WindowBuilder {
                 },
                 WindowLevel::Utility => {
                     window.set_urgency_hint(true);
-                    //window.set_modal(true);
                 }
                 _ => (),
             };
@@ -348,6 +352,20 @@ impl WindowBuilder {
                 if let Some(parent_state) = parent.0.state.upgrade() {
                     window.set_transient_for(Some(&parent_state.window));
                 }
+            }
+        }
+
+        match self.initial_position {
+            WindowInitialPosition::None => {
+            }
+            WindowInitialPosition::Center => {
+                window.set_position(WindowPosition::Center)
+            }
+            WindowInitialPosition::CenterOnParent => {
+                window.set_position(WindowPosition::CenterOnParent)
+            }
+            WindowInitialPosition::Mouse => {
+                window.set_position(WindowPosition::Mouse)
             }
         }
 
@@ -388,8 +406,11 @@ impl WindowBuilder {
             state: Arc::downgrade(&win_state),
             marker: std::marker::PhantomData,
         };
-        if let Some(pos) = self.position {
-            handle.set_position(pos);
+
+        if self.initial_position == WindowInitialPosition::None {
+            if let Some(pos) = self.position {
+                handle.set_position(pos);
+            }
         }
 
         if let Some(state) = self.state {
