@@ -140,6 +140,7 @@ pub(crate) struct WindowBuilder {
     min_size: Option<Size>,
     resizable: bool,
     show_titlebar: bool,
+    skip_taskbar: bool,
     transparent: bool,
     always_on_top: bool,
 }
@@ -224,6 +225,7 @@ impl WindowBuilder {
             min_size: None,
             resizable: true,
             show_titlebar: true,
+            skip_taskbar: true,
             transparent: false,
             always_on_top: false,
         }
@@ -247,6 +249,10 @@ impl WindowBuilder {
 
     pub fn show_titlebar(&mut self, show_titlebar: bool) {
         self.show_titlebar = show_titlebar;
+    }
+
+    pub fn skip_taskbar(&mut self, skip_taskbar: bool) {
+        self.skip_taskbar = skip_taskbar;
     }
 
     pub fn set_always_on_top(&mut self, always_on_top: bool) {
@@ -301,7 +307,7 @@ impl WindowBuilder {
         }
         window.set_app_paintable(transparent);
 
-        window.set_skip_taskbar_hint(true);
+        window.set_skip_taskbar_hint(self.skip_taskbar);
 
         // Get the scale factor based on the GTK reported DPI
         let scale_factor = window.display().default_screen().resolution() / SCALE_TARGET_DPI;
@@ -1001,6 +1007,10 @@ impl WindowHandle {
         if let Some(state) = self.state.upgrade() {
             state.window.set_decorated(show_titlebar)
         }
+    }
+
+    pub fn skip_taskbar(&self, skip_taskbar: bool) {
+        // no-op
     }
 
     pub fn set_position(&self, mut position: Point) {

@@ -83,6 +83,7 @@ pub(crate) struct WindowBuilder {
     present_strategy: PresentStrategy,
     resizable: bool,
     show_titlebar: bool,
+    skip_taskbar: bool,
     size: Option<Size>,
     transparent: bool,
     min_size: Option<Size>,
@@ -1483,6 +1484,7 @@ impl WindowBuilder {
             menu: None,
             resizable: true,
             show_titlebar: true,
+            skip_taskbar: false,
             transparent: false,
             present_strategy: Default::default(),
             size: None,
@@ -1513,6 +1515,10 @@ impl WindowBuilder {
 
     pub fn show_titlebar(&mut self, show_titlebar: bool) {
         self.show_titlebar = show_titlebar;
+    }
+
+    pub fn skip_taskbar(&mut self, skip_taskbar: bool) {
+        self.skip_taskbar = skip_taskbar;
     }
 
     pub fn set_always_on_top(&mut self, always_on_top: bool) {
@@ -1603,6 +1609,11 @@ impl WindowBuilder {
             } else {
                 // Default window level
                 window_level = WindowLevel::AppWindow;
+            }
+
+            if self.skip_taskbar {
+                dwStyle = WS_POPUPWINDOW | WS_CAPTION;
+                dwExStyle = WS_EX_TOOLWINDOW;
             }
 
             // Calculate the window position in pixels
@@ -2144,6 +2155,10 @@ impl WindowHandle {
 
     pub fn show_titlebar(&self, show_titlebar: bool) {
         self.defer(DeferredOp::ShowTitlebar(show_titlebar));
+    }
+
+    pub fn skip_taskbar(&self, skip_taskbar: bool) {
+        // no-op
     }
 
     pub fn set_position(&self, position: Point) {

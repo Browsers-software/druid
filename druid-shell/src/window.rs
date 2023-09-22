@@ -224,6 +224,11 @@ impl WindowHandle {
         self.0.show_titlebar(show_titlebar)
     }
 
+    /// Set whether to hide the window from the taskbar.
+    pub fn skip_taskbar(&self, skip_taskbar: bool) {
+        self.0.skip_taskbar(skip_taskbar)
+    }
+
     /// Sets the position of the window.
     ///
     /// The position is given in [display points], measured relative to the parent window if there
@@ -513,6 +518,10 @@ impl WindowBuilder {
     /// Set whether the window should have a titlebar and decorations.
     pub fn show_titlebar(&mut self, show_titlebar: bool) {
         self.0.show_titlebar(show_titlebar)
+    }
+
+    pub fn skip_taskbar(&mut self, skip_taskbar: bool) {
+        self.0.skip_taskbar(skip_taskbar)
     }
 
     /// Set whether the window should be always positioned above all other windows.

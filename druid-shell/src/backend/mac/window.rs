@@ -135,6 +135,7 @@ pub(crate) struct WindowBuilder {
     window_state: Option<WindowState>,
     resizable: bool,
     show_titlebar: bool,
+    skip_taskbar: bool,
     transparent: bool,
     always_on_top: bool,
 }
@@ -195,6 +196,7 @@ impl WindowBuilder {
             window_state: None,
             resizable: true,
             show_titlebar: true,
+            skip_taskbar: false,
             transparent: false,
             always_on_top: false,
         }
@@ -218,6 +220,10 @@ impl WindowBuilder {
 
     pub fn show_titlebar(&mut self, show_titlebar: bool) {
         self.show_titlebar = show_titlebar;
+    }
+
+    pub fn skip_taskbar(&mut self, skip_taskbar: bool) {
+        self.skip_taskbar = skip_taskbar;
     }
 
     pub fn set_transparent(&mut self, transparent: bool) {
@@ -1246,6 +1252,9 @@ impl WindowHandle {
 
     // TODO: Implement this
     pub fn show_titlebar(&self, _show_titlebar: bool) {}
+
+    // TODO: Implement this
+    pub fn skip_taskbar(&self, _skip_taskbar: bool) {}
 
     // Need to translate mac y coords, as they start from bottom left
     pub fn set_position(&self, mut position: Point) {

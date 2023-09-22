@@ -66,6 +66,7 @@ pub struct WindowConfig {
     pub(crate) resizable: Option<bool>,
     pub(crate) transparent: Option<bool>,
     pub(crate) show_titlebar: Option<bool>,
+    pub(crate) skip_taskbar: Option<bool>,
     pub(crate) level: Option<WindowLevel>,
     pub(crate) always_on_top: Option<bool>,
     pub(crate) state: Option<WindowState>,
@@ -296,6 +297,7 @@ impl Default for WindowConfig {
             position: None,
             resizable: None,
             show_titlebar: None,
+            skip_taskbar: None,
             transparent: None,
             level: None,
             always_on_top: None,
@@ -369,6 +371,12 @@ impl WindowConfig {
         self
     }
 
+    /// Set whether the window should hide itself from taskbar
+    pub fn skip_taskbar(mut self, skip_taskbar: bool) -> Self {
+        self.skip_taskbar = Some(skip_taskbar);
+        self
+    }
+
     /// Sets the window position in virtual screen coordinates.
     /// [`position`] Position in pixels.
     ///
@@ -419,6 +427,10 @@ impl WindowConfig {
             builder.show_titlebar(show_titlebar);
         }
 
+        if let Some(skip_taskbar) = self.skip_taskbar {
+            builder.skip_taskbar(skip_taskbar);
+        }
+
         if let Some(size) = self.size {
             builder.set_size(size);
         } else if let WindowSizePolicy::Content = self.size_policy {
@@ -458,6 +470,10 @@ impl WindowConfig {
 
         if let Some(show_titlebar) = self.show_titlebar {
             win_handle.show_titlebar(show_titlebar);
+        }
+
+        if let Some(skip_taskbar) = self.show_titlebar {
+            win_handle.skip_taskbar(skip_taskbar);
         }
 
         if let Some(size) = self.size {
@@ -577,6 +593,12 @@ impl<T: Data> WindowDesc<T> {
     /// Builder-style method to set whether this window's titlebar is visible.
     pub fn show_titlebar(mut self, show_titlebar: bool) -> Self {
         self.config = self.config.show_titlebar(show_titlebar);
+        self
+    }
+
+    /// Builder-style method to set whether this window is visible in taskbar.
+    pub fn skip_taskbar(mut self, skip_taskbar: bool) -> Self {
+        self.config = self.config.skip_taskbar(skip_taskbar);
         self
     }
 
