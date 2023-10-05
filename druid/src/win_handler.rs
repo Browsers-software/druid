@@ -954,6 +954,8 @@ pub struct UrlOpenInfo {
     pub source_bundle_id: String,
 }
 
+pub struct ApplicationLostFocus {}
+
 impl<T: Data> crate::shell::AppHandler for AppHandler<T> {
     fn command(&mut self, id: u32) {
         self.app_state.handle_system_cmd(id, None)
@@ -966,6 +968,15 @@ impl<T: Data> crate::shell::AppHandler for AppHandler<T> {
         };
         let url_opened: Selector<UrlOpenInfo> = Selector::new("url_opened");
         let cmd = url_opened.with(open_info).to(Target::Global);
+        self.app_state.handle_cmd(cmd);
+        self.app_state.process_commands();
+        self.app_state.inner.borrow_mut().do_update();
+    }
+
+    fn application_lost_focus(&mut self) {
+        let app_lost_focus: Selector<ApplicationLostFocus> = Selector::new("app_lost_focus");
+        let cmd = app_lost_focus.with(ApplicationLostFocus {}).to(Target::Global);
+
         self.app_state.handle_cmd(cmd);
         self.app_state.process_commands();
         self.app_state.inner.borrow_mut().do_update();

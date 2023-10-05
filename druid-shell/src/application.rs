@@ -32,6 +32,8 @@ pub trait AppHandler {
 
     #[allow(unused_variables)]
     fn url_opened(&mut self, url: String, source_bundle_id: String) {}
+
+    fn application_lost_focus(&mut self) {}
 }
 
 /// The top level application object.

@@ -147,6 +147,12 @@ impl DelegateState {
             inner.url_opened(url, opener_bundle_id)
         }
     }
+
+    fn application_lost_focus(&mut self) {
+        if let Some(inner) = self.handler.as_mut() {
+            inner.application_lost_focus()
+        }
+    }
 }
 
 struct AppDelegate(*const Class);
@@ -178,6 +184,11 @@ static APP_DELEGATE: Lazy<AppDelegate> = Lazy::new(|| unsafe {
     decl.add_method(
         sel!(applicationDidFinishLaunching:),
         application_did_finish_launching as extern "C" fn(&mut Object, Sel, id),
+    );
+
+    decl.add_method(
+        sel!(applicationDidResignActive:),
+        application_did_resign_active as extern "C" fn(&mut Object, Sel, id),
     );
 
     decl.add_method(
@@ -277,6 +288,14 @@ extern "C" fn application_did_finish_launching(_this: &mut Object, _: Sel, _noti
         // until we have the main menu all set up. Otherwise the menu won't be interactable.
         ns_app.setActivationPolicy_(activation_policy);
         let () = msg_send![ns_app, activateIgnoringOtherApps: YES];
+    }
+}
+
+extern "C" fn application_did_resign_active(this: &mut Object, _: Sel, _notification: id) {
+    unsafe {
+        let inner: *mut c_void = *this.get_ivar(APP_HANDLER_IVAR);
+        let inner = &mut *(inner as *mut DelegateState);
+        (*inner).application_lost_focus()
     }
 }
 

@@ -229,6 +229,7 @@ pub use util::Handled;
 pub use widget::{Widget, WidgetExt, WidgetId};
 pub use win_handler::DruidHandler;
 pub use win_handler::UrlOpenInfo;
+pub use win_handler::ApplicationLostFocus;
 pub use window::{Window, WindowId};
 
 #[cfg(not(target_arch = "wasm32"))]
